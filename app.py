@@ -46,4 +46,25 @@ with st.sidebar:
             st.session_state.deal_types[i]['deal_code'] = new_code
             
     if st.button("➕ Add Deal Type"):
-        st.session_state.deal_types.append({'col_name': 'NewColumn', 'deal_
+        st.session_state.deal_types.append({'col_name': 'NewColumn', 'deal_code': ''})
+        st.rerun()
+
+# --- Main Logic ---
+uploaded_file = st.file_uploader("Upload Seller Data (Excel)", type=['xlsx', 'xls'])
+
+if uploaded_file:
+    if st.button("🚀 Generate Deal Sheets"):
+        try:
+            # 1. Read Data
+            df = pd.read_excel(uploaded_file)
+            df.columns = df.columns.str.strip() 
+            
+            # 2. Setup Output Buffer
+            output = io.BytesIO()
+            
+            # 3. Filter Active Deals
+            active_deals = [d for d in st.session_state.deal_types if d['deal_code'].strip() != '']
+            
+            # Required columns check
+            required_cols = ['ID Partner', 'Offer Code', 'SKU', 'Psku', 'Offer Price', 'Psku Live Express Stock']
+            missing_cols = [col for col in required_cols if col not in df.columns]
